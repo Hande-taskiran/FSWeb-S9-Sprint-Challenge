@@ -1,63 +1,79 @@
-import React from 'react'
+import React, { useState } from "react";
 
 // önerilen başlangıç stateleri
-const initialMessage = ''
-const initialEmail = ''
-const initialSteps = 0
-const initialIndex = 4 //  "B" nin bulunduğu indexi
-
+//const initialMessage = ''
+//const initialEmail = ''
+//const initialSteps = 0
+//const initialIndex = 4 //  "B" nin bulunduğu indexi
+const gridSize = 3;
 export default function AppFunctional(props) {
-  // AŞAĞIDAKİ HELPERLAR SADECE ÖNERİDİR.
-  // Bunları silip kendi mantığınızla sıfırdan geliştirebilirsiniz.
+  const [message, setMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [steps, setSteps] = useState(0);
+  const [index, setIndex] = useState(4);
 
   function getXY() {
-    // Koordinatları izlemek için bir state e sahip olmak gerekli değildir.
-    // Bunları hesaplayabilmek için "B" nin hangi indexte olduğunu bilmek yeterlidir.
+    return {
+      x: `Math.floor(index / gridSize) + 1`,
+      y: `(index % gridSize) + 1`,
+    };
   }
 
   function getXYMesaj() {
-    // Kullanıcı için "Koordinatlar (2, 2)" mesajını izlemek için bir state'in olması gerekli değildir.
-    // Koordinatları almak için yukarıdaki "getXY" helperını ve ardından "getXYMesaj"ı kullanabilirsiniz.
-    // tamamen oluşturulmuş stringi döndürür.
+    const xy = getXY();
+    return `Coordinates (${xy.x}, ${xy.y})`;
   }
 
   function reset() {
-    // Tüm stateleri başlangıç ​​değerlerine sıfırlamak için bu helperı kullanın.
+    setIndex(4);
+    setSteps(0);
+    setEmail("");
+    setMessage("");
   }
 
   function sonrakiIndex(yon) {
-    // Bu helper bir yön ("sol", "yukarı", vb.) alır ve "B" nin bir sonraki indeksinin ne olduğunu hesaplar.
-    // Gridin kenarına ulaşıldığında başka gidecek yer olmadığı için,
-    // şu anki indeksi değiştirmemeli.
+    const x = Math.floor(index / gridSize) + 1;
+    const y = (index % gridSize) + 1;
+    if (yon === "sol" && x > 1) return index - 1;
+    if (yon === "sağ" && x < gridSize) return index + 1;
+    if (yon === "yukarı" && y > 1) return index - gridSize;
+    if (yon === "aşağı" && y < gridSize) return index + gridSize;
+
+    return index;
   }
 
   function ilerle(evt) {
-    // Bu event handler, "B" için yeni bir dizin elde etmek üzere yukarıdaki yardımcıyı kullanabilir,
-    // ve buna göre state i değiştirir.
+    const yon = evt.target.id;
+    const newIndex = sonrakiIndex(yon);
+    if (newIndex !== index) {
+      setIndex(newIndex);
+      setSteps(steps + 1);
+    }
+    setMessage(`You moved ${steps} times`);
   }
 
   function onChange(evt) {
-    // inputun değerini güncellemek için bunu kullanabilirsiniz
+    setEmail(evt.target.value);
   }
 
   function onSubmit(evt) {
-    // payloadu POST etmek için bir submit handlera da ihtiyacınız var.
+    evt.preventDefault();
+    // POST request
+    console.log(`E-posta gönderildi: ${email}`);
   }
 
   return (
     <div id="wrapper" className={props.className}>
       <div className="info">
-        <h3 id="coordinates">Koordinatlar (2, 2)</h3>
-        <h3 id="steps">0 kere ilerlediniz</h3>
+        <h3 id="coordinates">{getXYMesaj()}</h3>
+        <h3 id="steps">{`You moved ${steps} times`}</h3>
       </div>
       <div id="grid">
-        {
-          [0, 1, 2, 3, 4, 5, 6, 7, 8].map(idx => (
-            <div key={idx} className={`square${idx === 4 ? ' active' : ''}`}>
-              {idx === 4 ? 'B' : null}
-            </div>
-          ))
-        }
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((idx) => (
+          <div key={idx} className={`square${idx === index ? " active" : ""}`}>
+            {idx === index ? "B" : null}
+          </div>
+        ))}
       </div>
       <div className="info">
         <h3 id="message"></h3>
@@ -74,5 +90,5 @@ export default function AppFunctional(props) {
         <input id="submit" type="submit"></input>
       </form>
     </div>
-  )
+  );
 }
